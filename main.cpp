@@ -1,249 +1,141 @@
+
+/**
+ * @file main.cpp
+ * @brief This file contains the implementation of a solver for finding the shortest path between cities in Romania using
+ * Greedy Best-First Search and A* Search.
+ */
+
 #include <iostream>
 #include <vector>
 #include <unordered_map>
 #include <algorithm>
+#include "graph.hpp"
+#include "initializer.hpp"
+
 using namespace std;
 
-class Graph {
-private:
-    unordered_map<string, vector<pair<string, int>>> adjList;
-public:
-    
-    void addVertex(const string& vertex) {
-        adjList[vertex] = vector<pair<string, int>>();
-    }
 
-    void addEdge(const string& source, const string& dest, int weight) {
-        adjList[source].push_back(make_pair(dest, weight));
-    }
-
-    vector<pair<string,int>> getDestinations(const string& vertex) {
-    vector<pair<string,int>> destinations;
-    if (this->adjList.find(vertex) != this->adjList.end()) {
-        for (const auto& neighbor : this->adjList.at(vertex)) {
-            destinations.push_back(make_pair(neighbor.first, neighbor.second));
-        }
-    }
-    return destinations;
-    }
-
-    int getDistance(const string& source, const string& dest) {
-    if (adjList.find(source) == adjList.end()) {
-        // Source vertex not found in graph
-        return -1;
-    }
-
-    for (const auto& neighbor : adjList[source]) {
-        if (neighbor.first == dest) {
-            // Found the destination vertex
-            return neighbor.second;
-        }
-    }
-
-    // Destination vertex not found among neighbors of source vertex
-    return -1;
-}
-
-
-    void printGraph() const {
-        for (const auto& [vertex, neighbors] : adjList) {
-            cout << vertex << ": ";
-            for (const auto& neighbor : neighbors) {
-                cout << "(" << neighbor.first << ", " << neighbor.second << ") ";
-            }
-            cout << endl;
-        }
-    }
-};
-
+/**
+ * @class Solver
+ * @brief This class contains the methods to find the shortest path between cities in Romania using Greedy Best-First Search and A* Search.
+ */
 class Solver{
     private:
-    Graph romeniaMap;
-    unordered_map<string,int> heuristics;
+    Graph romaniaMap;/*< A Graph object that represents the Romania Map. */
+    unordered_map<string,int> heuristics;/* An unordered map containing the heuristic function that estimates the distance from each city to Bucharest. */
     public:
+    /**
+    * @brief The constructor of the Solver class that initializes the Romania Map and the heuristic function.
+    */
     Solver(){
-        romeniaMap.addVertex("Arad");
-		romeniaMap.addEdge("Arad","Zerind",75);
-		romeniaMap.addEdge("Arad","Sibiu",140);
-		romeniaMap.addEdge("Arad","Timisoara",118);
-
-		romeniaMap.addVertex("Bucharest");
-		romeniaMap.addEdge("Bucharest","Giurgiu",90);
-		romeniaMap.addEdge("Bucharest","Urziceni",85);
-		romeniaMap.addEdge("Bucharest","Fagaras",211);
-		romeniaMap.addEdge("Bucharest","Pitesti",101);
-		
-		romeniaMap.addVertex("Craiova");
-		romeniaMap.addEdge("Craiova","Pitesti",138);
-		romeniaMap.addEdge("Craiova","Rimnicu Vilcea",146);
-		romeniaMap.addEdge("Craiova","Drobeta",120);
-
-		romeniaMap.addVertex("Drobeta");
-		romeniaMap.addEdge("Drobeta","Craiova",120);
-		romeniaMap.addEdge("Drobeta","Mehadia",75);
-
-		romeniaMap.addVertex("Eforie");
-		romeniaMap.addEdge("Eforie","Hirsova",86);
-
-		romeniaMap.addVertex("Fagaras");
-		romeniaMap.addEdge("Fagaras","Sibiu",99);
-		romeniaMap.addEdge("Fagaras","Bucharest",211);
-
-		romeniaMap.addVertex("Giurgiu");
-		romeniaMap.addEdge("Giurgiu","Bucharest",90);
-
-		romeniaMap.addVertex("Hirsova");
-		romeniaMap.addEdge("Hirsova","Eforie",86);
-		romeniaMap.addEdge("Hirsova","Urziceni",98);
-
-		romeniaMap.addVertex("Iasi");;
-		romeniaMap.addEdge("Mehadia","Lugoj",70);
-		romeniaMap.addEdge("Mehadia","Drobeta",75);
-
-		romeniaMap.addVertex("Neamt");
-		romeniaMap.addEdge("Neamt","Iasi",87);
-
-		romeniaMap.addVertex("Oradea");
-		romeniaMap.addEdge("Oradea","Sibiu",151);
-		romeniaMap.addEdge("Oradea","Zerind",71);
-
-		romeniaMap.addVertex("Pitesti");
-		romeniaMap.addEdge("Pitesti","Rimnicu Vilcea",97);
-		romeniaMap.addEdge("Pitesti","Bucharest",101);
-		romeniaMap.addEdge("Pitesti","Craiova",138);
-
-		romeniaMap.addVertex("Rimnicu Vilcea");
-		romeniaMap.addEdge("Rimnicu Vilcea","Craiova",146);
-		romeniaMap.addEdge("Rimnicu Vilcea","Pitesti",97);
-		romeniaMap.addEdge("Rimnicu Vilcea","Sibiu",80);
-
-		romeniaMap.addVertex("Sibiu");
-		romeniaMap.addEdge("Sibiu","Oradea",151);
-		romeniaMap.addEdge("Sibiu","Arad",140);
-		romeniaMap.addEdge("Sibiu","Rimnicu Vilcea",80);
-		romeniaMap.addEdge("Sibiu","Fagaras",99);
-
-		romeniaMap.addVertex("Timisoara");
-		romeniaMap.addEdge("Timisoara","Arad",118);
-		romeniaMap.addEdge("Timisoara","Lugoj",111);
-
-		romeniaMap.addVertex("Urziceni");
-		romeniaMap.addEdge("Urziceni","Hirsova",98);
-		romeniaMap.addEdge("Urziceni","Vaslui",142);
-		romeniaMap.addEdge("Urziceni","Bucharest",85);
-
-		romeniaMap.addVertex("Vaslui");
-		romeniaMap.addEdge("Vaslui","Iasi",92);
-		romeniaMap.addEdge("Vaslui","Urziceni",142);
-
-		romeniaMap.addVertex("Zerind");
-		romeniaMap.addEdge("Zerind","Arad",75);
-		romeniaMap.addEdge("Zerind","Oradea",71);
-
-        heuristics.insert({"Arad",366});
-		heuristics.insert({"Bucharest",0});
-		heuristics.insert({"Craiova",160});
-		heuristics.insert({"Drobeta",242});
-		heuristics.insert({"Eforie",161});
-		heuristics.insert({"Fagaras",176});
-		heuristics.insert({"Giurgiu",77});
-		heuristics.insert({"Hirsova",151});
-		heuristics.insert({"Iasi",226});
-		heuristics.insert({"Lugoj",244});
-		heuristics.insert({"Mehadia",241});
-		heuristics.insert({"Neamt",234});
-		heuristics.insert({"Oradea",380});
-		heuristics.insert({"Pitesti",100});
-		heuristics.insert({"Rimnicu Vilcea",193});
-		heuristics.insert({"Sibiu",253});
-		heuristics.insert({"Timisoara",329});
-		heuristics.insert({"Urziceni",80});
-		heuristics.insert({"Vaslui",199});
-		heuristics.insert({"Zering",374});
+        initializeRomaniaMap(romaniaMap);
+        heuristics=straightLineDistanceToBucharest;
+        string origin;
+        int choice=0;
+        while (choice != 3) {
+            cout << "Welcome to Romania Map Solver!\n\n";
+            cout << "Please select an option:\n";
+            cout << "1. Find the shortest path between a city and Bucharest using Greedy Best-First Search.\n";
+            cout << "2. Find the shortest path between two cities using A* Search.\n";
+            cout << "3. Exit.\n\n";
+            cout << "Enter your choice (1-3): ";
+            cin >> choice;
+            switch (choice) {
+                case 1:
+                    cout << "\nEnter the origin city: ";
+                    cin >> origin;
+                    this->getShortestPath(origin, "Bucharest", "greedy");
+                    break;
+                case 2:
+                    cout << "\nEnter the origin city: ";
+                    cin >> origin;
+                    this->getShortestPath(origin, "Bucharest", "astar");
+                    break;
+                case 3:
+                    cout << "\nExiting program...\n";
+                    break;
+                default:
+                    cout << "\nInvalid choice. Please try again.\n";
+                    break;
+            }
+            cout << "\n";
+         }
     }
-    void greedySearch(string origin,string destination){
+    
+    /**
+     * @brief This method finds the shortest path between two cities using either Greedy Best-First Search or A* Search.
+     * @param origin The origin city.
+     * @param destination The destination city.
+     * @param searchMethod The search method to use ("greedy" or "astar").
+     * @return void
+     */
+    void getShortestPath(string origin,string destination,string searchMethod){
         if(origin==destination) return;
-        vector<string> visited;
+        vector<string> Path;
+        Path.push_back(origin);
         pair<string,int> nextCity;
         int distance = 0;
         string actualCity = origin;
-        visited.push_back(actualCity);
         while(actualCity != destination){
-
-            nextCity = minHeuristic(actualCity);
-            distance += romeniaMap.getDistance(actualCity,nextCity.first);
+            if(searchMethod=="greedy")nextCity = greedyBestChildren(actualCity);
+            if(searchMethod=="astar")nextCity = aStarBestChildren(actualCity);
+            distance += romaniaMap.getDistance(actualCity,nextCity.first);
             actualCity=nextCity.first;
-            visited.push_back(actualCity);
+            Path.push_back(actualCity);
         }
-        cout << "Path:\n";
-        for (auto const& city : visited) {
+        cout << "\nPath:\n";
+        for (auto const& city : Path) {
 			cout << city << endl;
 		}
         cout << "Distance: " << distance << endl;
     }
-    pair<string,int> minHeuristic(string origin){
-        vector<pair<string,int>> destinies = romeniaMap.getDestinations(origin);
-        vector<pair<string,int>> validAStars;
+
+    /**
+     * @brief This method returns the child with the minimum heuristic value using Greedy Best-First Search.
+     * @param origin The parent node.
+     * @return pair<string,int> The minimum heuristic value.
+     */
+    pair<string,int> greedyBestChildren(string origin){
+        vector<pair<string,int>> destinies = romaniaMap.getDestinations(origin);
+        vector<pair<string,int>> validHeuristics;
         for (auto const& destiny : destinies) {
 			for (auto const& heuristic : heuristics) {
 			if(destiny.first ==heuristic.first){
-				validAStars.push_back(make_pair(heuristic.first,heuristic.second));
+				validHeuristics.push_back(make_pair(heuristic.first,heuristic.second));
 			}
 			}	
 		}
-        pair<string,int> minHeuristic =  *min_element(validAStars.begin(), validAStars.end(),
+        pair<string,int> minHeuristic =  *min_element(validHeuristics.begin(), validHeuristics.end(),
                                [](const auto& a, const auto& b) {
                                    return a.second < b.second;
                                });
         return minHeuristic;
     }
 
-    void aStarSearch(string origin,string destination){
-        if(origin==destination) return;
-        vector<string> visited;
-        pair<string,int> nextCity;
-        int distance = 0;
-        string actualCity = origin;
-        visited.push_back(actualCity);
-        while(actualCity != destination){
-
-            nextCity = minAStar(actualCity);
-            distance += romeniaMap.getDistance(actualCity,nextCity.first);
-            actualCity=nextCity.first;
-            visited.push_back(actualCity);
-        }
-        cout << "Path:\n";
-        for (auto const& city : visited) {
-			cout << city << endl;
-		}
-        cout << "Distance: " << distance << endl;
-    }
-
-    pair<string,int> minAStar(string origin){
-        vector<pair<string,int>> destinies = romeniaMap.getDestinations(origin);
-        vector<pair<string,int>> validAStars;
+    /**
+     * @brief This method returns the child with the minimum heuristic value using A* Search.
+     * @param origin The parent node.
+     * @return pair<string,int> The minimum heuristic value.
+     */
+    pair<string,int> aStarBestChildren(string origin){
+        vector<pair<string,int>> destinies = romaniaMap.getDestinations(origin);
+        vector<pair<string,int>> validHeuristics;
         for (auto const& destiny : destinies) {
 			for (auto const& heuristic : heuristics) {
 			if(destiny.first ==heuristic.first){
-				validAStars.push_back(make_pair(heuristic.first,destiny.second + heuristic.second));
+				validHeuristics.push_back(make_pair(heuristic.first,destiny.second + heuristic.second));
 			}
 			}	
 		}
-        pair<string,int> minAStar =  *min_element(validAStars.begin(), validAStars.end(),
+        pair<string,int> minAStar =  *min_element(validHeuristics.begin(), validHeuristics.end(),
                                [](const auto& a, const auto& b) {
                                    return a.second < b.second;
                                });
         return minAStar;
     }
-
-
-
-  
 };
 
 int main() {
     Solver S;
-    S.greedySearch("Arad","Bucharest");
-    S.aStarSearch("Arad","Bucharest");
     return 0;
 }

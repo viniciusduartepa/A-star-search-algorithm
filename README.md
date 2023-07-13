@@ -10,5 +10,10 @@ em linha reta de Arad até Bucharest é de 366 milhas, e a distância em linha
 reta de Fagaras até Bucharest é de 176 milhas. Segundo Russell and Norvig
 [2021], um algoritmo de busca gulosa utiliza como heurística a distância estimada em linha reta até o objetivo, e um algoritmo A* utiliza, a distância
 estimada mais a distância local.
-![image](https://github.com/viniciusduartepa/A-star-search-algorithm/assets/54722756/08a5e4d0-4ee8-46b2-b1b9-84368a858b8b)
-![image](https://github.com/viniciusduartepa/A-star-search-algorithm/assets/54722756/436c2fb8-3c1d-4144-bfaa-5360322cfeb7)
+<p align="center">
+  <img src="https://github.com/viniciusduartepa/A-star-search-algorithm/assets/54722756/08a5e4d0-4ee8-46b2-b1b9-84368a858b8b" />
+</p>
+<p align="center">
+  <img src="https://github.com/viniciusduartepa/A-star-search-algorithm/assets/54722756/436c2fb8-3c1d-4144-bfaa-5360322cfeb7" />
+</p>
+
